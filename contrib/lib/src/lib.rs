@@ -53,5 +53,5 @@
 #[cfg(feature = "helmet")] pub mod helmet;
 // TODO.async: Migrate compression, reenable this and tests
 //#[cfg(any(feature="brotli_compression", feature="gzip_compression"))] pub mod compression;
-
+#[cfg(feature="cors")] pub mod cors;
 #[cfg(feature="databases")] #[doc(hidden)] pub use rocket_contrib_codegen::*;

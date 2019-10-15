@@ -5,6 +5,7 @@ use rocket::Response;
 use rocket::http::Method;
 use rocket::http::Status;
 use rocket::response::Responder;
+use rocket::response::ResultFuture;
 
 pub struct PreflightCors {
     pub allowed_methods: Vec<Method>,
@@ -12,19 +13,21 @@ pub struct PreflightCors {
 }
 
 impl<'r> Responder<'r> for PreflightCors {
-    fn respond_to(self, _request: &Request<'_>) -> rocket::response::Result<'r> {
-        let mut meths: Vec<String> = self.allowed_methods.iter().map(|x| format!("{}", x)).collect();
-        meths.sort();
-        let methods = comma_list(&meths);
-        let headers = comma_list(&self.allowed_headers);
+    fn respond_to(self, _: &'r Request) -> ResultFuture<'r> {
+        Box::pin(async move {
+            let mut meths: Vec<String> = self.allowed_methods.iter().map(|x| format!("{}", x)).collect();
+            meths.sort();
+            let methods = comma_list(&meths);
+            let headers = comma_list(&self.allowed_headers);
 
-        let mut response = Response::build();
-        
-        response.raw_header("Access-Control-Allow-Methods", methods);
-        response.raw_header("Access-Control-Allow-Headers", headers);
-        response.status(Status::Ok)
-        .ok()
-    }
+            let mut response = Response::build();
+            
+            response.raw_header("Access-Control-Allow-Methods", methods);
+            response.raw_header("Access-Control-Allow-Headers", headers);
+            response.status(Status::Ok)
+            .ok()
+        })
+     }
 }
 
 

@@ -44,7 +44,7 @@
 
 #[allow(unused_imports)] #[macro_use] extern crate log;
 #[allow(unused_imports)] #[macro_use] extern crate rocket;
-
+#[cfg(feature="cors")] extern crate futures_core;
 #[cfg(feature="json")] #[macro_use] pub mod json;
 #[cfg(feature="serve")] pub mod serve;
 #[cfg(feature="msgpack")] pub mod msgpack;

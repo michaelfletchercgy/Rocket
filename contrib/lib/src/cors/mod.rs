@@ -52,12 +52,14 @@ use rocket::config::Value;
 use rocket::fairing::Fairing;
 use rocket::fairing::Info;
 use rocket::fairing::Kind;
+use futures_core::future::BoxFuture;
 use rocket::Data;
 use rocket::Request;
 use rocket::Response;
 use rocket::Rocket;
 use rocket::Route;
 use rocket::Handler;
+use rocket::handler::HandlerFuture;
 use rocket::handler::Outcome;
 use rocket::http::Header;
 use rocket::http::Method;
@@ -189,12 +191,14 @@ impl Fairing for CorsFairing {
 
 
     #[allow(unused_variables)]
-    fn on_response(&self, request: &Request<'_>, response: &mut Response<'_>) {
-        let context = request
-            .guard::<rocket::State<'_, CorsContext>>()
-            .expect("CorsContext registered in on_attach");
+    fn on_response<'a, 'r>(&'a self, request: &'a Request<'r>, response: &'a mut Response<'r>) -> BoxFuture<'a, ()> {
+        Box::pin(async move { 
+            let context = request
+                .guard::<rocket::State<'_, CorsContext>>()
+                .expect("CorsContext registered in on_attach");
 
-        response.set_header(Header::new("Access-Control-Allow-Origin", context.origin.clone()));
+            response.set_header(Header::new("Access-Control-Allow-Origin", context.origin.clone()));
+        })
     }
 }
 
@@ -214,12 +218,12 @@ impl OptionsHandler {
 }
 
 impl Handler for OptionsHandler {
-    fn handle<'r>(&self, req: &'r Request<'_>, _data: Data) -> Outcome<'r> {
+    fn handle<'r>(&self, request: &'r Request<'_>, data: Data) -> HandlerFuture<'r> {
         let responder = PreflightCors {
             allowed_methods: self.allowed_methods.clone(),
             allowed_headers: self.allowed_headers.clone()
         };
 
-        Outcome::from(req, responder)
+        Outcome::from(request, responder)
     }
 }

@@ -1,6 +1,6 @@
 //! A fairing to implement automatic [Cross-origin resource sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing).
-//! 
-//! This fairing will automatically add appropriate Access-Control-* headers 
+//!
+//! This fairing will automatically add appropriate Access-Control-* headers
 //! to every route and generate preflight routes (OPTIONS) where required.
 //!
 //!
@@ -16,22 +16,22 @@
 //! ```
 //!
 //! Configure the allowed origin in your Rocket.toml file.
-//! 
+//!
 //! ```toml
 //! [development.cors]
 //! allow_origin = "https://example.com/"
 //! allow_headers = ["X-Foo", "X-Bar"]
 //! ```
-//! 
+//!
 //! Then add the fairing to your rocket before launching.
-//! 
+//!
 //! ```rust
 //! #![feature(proc_macro_hygiene)]
-//! 
+//!
 //! #[macro_use] extern crate rocket;
-//! 
+//!
 //! use rocket_contrib::cors::CorsFairing;
-//! 
+//!
 //! #[get("/")]
 //! fn index() -> &'static str {
 //!     "Hello, world!"
@@ -114,7 +114,7 @@ fn make_from_rocket_config(config:&super::rocket::Config) -> Result<CorsFairingC
                 if let Value::Array(allow_headers_array) = allow_headers_value {
                     allow_headers_array
                         .iter()
-                        .filter_map(|val| match val { 
+                        .filter_map(|val| match val {
                             Value::String(s) => Some(s.clone()),
                             _ => None
                         })
@@ -122,7 +122,7 @@ fn make_from_rocket_config(config:&super::rocket::Config) -> Result<CorsFairingC
 
                 }
             };
-        
+
             Ok(CorsFairingConfig {
                 origin: origin,
                 headers: headers
@@ -141,8 +141,7 @@ impl Fairing for CorsFairing {
         }
     }
 
-    
-    fn on_attach(&self, mut rocket:Rocket) -> Result<Rocket, Rocket> { 
+    fn on_attach(&self, mut rocket:Rocket) -> Result<Rocket, Rocket> {
         use std::collections::HashMap;
 
         let config = match &self.provided_config {
@@ -162,14 +161,12 @@ impl Fairing for CorsFairing {
         let ctx = CorsContext {
             origin: config.origin.clone()
         };
-        
+
         let mut uri_methods : HashMap<String, Vec<Method>> = HashMap::new();
-        for route in rocket.routes()
-        {
+        for route in rocket.routes() {
             let methods = uri_methods.entry(route.uri.path().to_string()).or_insert(Vec::new());
             methods.push(route.method);
         }
-
 
         let mut new_routes:Vec<Route> = Vec::new();
         for (uri, methods) in uri_methods.iter() {
@@ -178,12 +175,11 @@ impl Fairing for CorsFairing {
             let preflight = Route::new(Method::Options, uri, options_handler);
             new_routes.push(preflight);
         }
-        
+
         rocket = rocket.mount("/", new_routes);
         Ok(rocket.manage(ctx))
     }
 
-    
     #[allow(unused_variables)]
     fn on_request(&self, _: &mut Request<'_>, _: &Data) {
         unimplemented!();
@@ -192,7 +188,7 @@ impl Fairing for CorsFairing {
 
     #[allow(unused_variables)]
     fn on_response<'a, 'r>(&'a self, request: &'a Request<'r>, response: &'a mut Response<'r>) -> BoxFuture<'a, ()> {
-        Box::pin(async move { 
+        Box::pin(async move {
             let context = request
                 .guard::<rocket::State<'_, CorsContext>>()
                 .expect("CorsContext registered in on_attach");
@@ -210,7 +206,7 @@ struct OptionsHandler {
 
 impl OptionsHandler {
     pub fn new(allowed_methods: Vec<Method>, allowed_headers: Vec<String>) -> OptionsHandler {
-        OptionsHandler { 
+        OptionsHandler {
             allowed_methods: allowed_methods,
             allowed_headers: allowed_headers
         }

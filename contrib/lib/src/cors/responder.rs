@@ -1,4 +1,3 @@
-
 use rocket::Request;
 
 use rocket::Response;
@@ -21,7 +20,7 @@ impl<'r> Responder<'r> for PreflightCors {
             let headers = comma_list(&self.allowed_headers);
 
             let mut response = Response::build();
-            
+
             response.raw_header("Access-Control-Allow-Methods", methods);
             response.raw_header("Access-Control-Allow-Headers", headers);
             response.status(Status::Ok)
@@ -29,8 +28,6 @@ impl<'r> Responder<'r> for PreflightCors {
         })
      }
 }
-
-
 
 fn comma_list(strings: &Vec<String>) -> String {
     let mut list = String::new();

@@ -26,7 +26,7 @@
 //! * [helmet](helmet) - Fairing for Security and Privacy Headers
 //! * [compression](compression) - Response compression
 //! * [cors](cors) - Automatic Cross-Origin Resource Sharing
-//! 
+//!
 //! The recommend way to include features from this crate via Cargo in your
 //! project is by adding a `[dependencies.rocket_contrib]` section to your
 //! `Cargo.toml` file, setting `default-features` to false, and specifying
